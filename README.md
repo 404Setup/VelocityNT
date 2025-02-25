@@ -1,10 +1,12 @@
-# Velocity
+# VelocityNT
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/PaperMC/Velocity/gradle.yml)](https://papermc.io/downloads/velocity)
 [![Join our Discord](https://img.shields.io/discord/289587909051416579.svg?logo=discord&label=)](https://discord.gg/papermc)
 
 A Minecraft server proxy with unparalleled server support, scalability,
 and flexibility.
+
+**This fork provides out-of-the-box support for Native Deflate and OpenSSL on Windows for Velocity.**
 
 Velocity is licensed under the GPLv3 license.
 

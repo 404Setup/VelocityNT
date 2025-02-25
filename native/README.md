@@ -13,6 +13,7 @@ CommonCrypto library.
 
 `velocity-natives` is built for the following platforms:
 
+- Windows x86_64
 - Linux x86_64
 - Linux aarch64
 - macOS aarch64 ("Apple Silicon")
@@ -20,11 +21,30 @@ CommonCrypto library.
 For Linux platforms, we provide two versions of the native library: one built against OpenSSL 1.1.x and one built against OpenSSL 3.x.x.
 All native libraries are built on various versions of Ubuntu and Alpine:
 
+- Windows 11 26120.3291 for OpenSSL 3.1.1 (and 1.1.1w) support and for compression
 - Ubuntu 20.04 for OpenSSL 1.1.x support and for compression
 - Ubuntu 22.04 for OpenSSL 3.x.x support
 - Alpine 3.18 for OpenSSL 3.x.x support and compression (musl libc users only)
 
 ## Building
+
+Since I tweaked some internal code, this may perform a little differently on non-Windows platforms, 
+although I don't think it will affect it too much
+
+### On Windows
+I'm still tweaking the build scripts, and the way they're all built might be a little fiddly
+
+#### OpenSSL
+Install OpenSSL-Win64 3.1+ (https://slproweb.com/products/Win32OpenSSL.html) and leave them in the default path.
+
+Then in the native module, rename `CMakeLists.openssl.txt` to `CMakeLists.txt`, 
+and then execute the "cmake -B build && cmake --build build".
+
+Find it in the `native/src/main/resources/windows_x86_64/Debug/velocity-cipher-ossl30x.dll` and move it to the
+ `native/src/main/resources/windows_x86_64/velocity-cipher-ossl30x.dll`
+
+#### Deflate
+TODO )
 
 ### On Linux
 
@@ -60,5 +80,3 @@ If your OS of choice is a Unix of some sort, you can use the individual Linux bu
 - `build-support/compile-linux-crypto.sh`
 
 You will need to have the necessary build tools installed (a C/C++ toolchain and `cmake`), and you will need to have OpenSSL installed. You will also need to adjust the script to your needs.
-
-If your OS of choice is Windows, you're on your own. It should be possible, but we don't provide any support for it.

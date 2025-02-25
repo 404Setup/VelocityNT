@@ -1,0 +1,129 @@
+cmake_minimum_required(VERSION 3.10)
+project(velocity-cipher)
+
+if(WIN32)
+    list(APPEND OPENSSL_ROOT_HINT
+        "C:/Program Files/OpenSSL-Win64"
+        "C:/Program Files/OSSL1.1.1"
+        "C:/OpenSSL-Win64"
+    )
+
+    foreach(HINT ${OPENSSL_ROOT_HINT})
+        if(EXISTS "${HINT}/include/openssl/evp.h")
+            set(OPENSSL_ROOT_DIR "${HINT}")
+            break()
+        endif()
+    endforeach()
+
+    if(NOT OPENSSL_ROOT_DIR)
+        message(FATAL_ERROR "OpenSSL installation not found. Please install OpenSSL or manually set OPENSSL_ROOT_DIR.")
+    endif()
+endif()
+
+find_package(JNI REQUIRED)
+find_package(OpenSSL REQUIRED)
+
+message(STATUS "Found OpenSSL installation directory: ${OPENSSL_ROOT_DIR}")
+message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
+
+# Get OpenSSL version information
+if(OPENSSL_VERSION MATCHES "^1\\.1\\.")
+    set(CIPHER_SUFFIX "ossl11x")
+elseif(OPENSSL_VERSION MATCHES "^3\\.")
+    set(CIPHER_SUFFIX "ossl30x")
+else()
+    message(FATAL_ERROR "Unsupported OpenSSL version: ${OPENSSL_VERSION}")
+endif()
+
+set(SOURCE_FILES
+    src/main/c/jni_util.c
+    src/main/c/jni_cipher_openssl.c
+)
+
+if(WIN32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(PLATFORM_DIR "windows_x86_64")
+    else()
+        set(PLATFORM_DIR "windows_x86")
+    endif()
+else()
+    execute_process(
+        COMMAND uname -m
+        OUTPUT_VARIABLE ARCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(PLATFORM_DIR "linux_${ARCH}")
+    set(LIB_EXTENSION "so")
+
+    execute_process(
+        COMMAND ldd --version
+        ERROR_VARIABLE LDD_VERSION
+        OUTPUT_VARIABLE LDD_VERSION
+    )
+    if(LDD_VERSION MATCHES "musl")
+        set(MUSL_SUFFIX "-musl")
+    endif()
+endif()
+
+set(OUTPUT_NAME "velocity-cipher-${CIPHER_SUFFIX}${MUSL_SUFFIX}")
+
+add_library(velocity-cipher SHARED ${SOURCE_FILES})
+
+target_include_directories(velocity-cipher PRIVATE
+    ${JNI_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIR}
+)
+
+if(MSVC)
+    target_compile_options(velocity-cipher PRIVATE
+        /O2
+        /W3
+        /WX
+        /wd4996
+        /MP 
+    )
+
+    string(REPLACE "/RTC1" "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+    string(REPLACE "/RTC1" "" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+else()
+    target_compile_options(velocity-cipher PRIVATE
+        -O2
+        -Wall
+        -Werror
+        -fomit-frame-pointer
+    )
+
+    if(NOT WIN32)
+        target_compile_options(velocity-cipher PRIVATE
+            -fPIC
+        )
+
+        target_link_options(velocity-cipher PRIVATE
+            -z,noexecstack
+        )
+    endif()
+endif()
+
+
+if(NOT WIN32)
+    target_compile_options(velocity-cipher PRIVATE
+        -fPIC
+    )
+
+    target_link_options(velocity-cipher PRIVATE
+        -z,noexecstack
+    )
+endif()
+
+target_link_libraries(velocity-cipher PRIVATE
+    OpenSSL::Crypto
+)
+
+set_target_properties(velocity-cipher PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}"
+    OUTPUT_NAME "${OUTPUT_NAME}"
+)
+
+message(STATUS "Output directory: ${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}")
+message(STATUS "Output file name: ${OUTPUT_NAME}.${LIB_EXTENSION}")
