@@ -6,8 +6,12 @@
 
 typedef unsigned char byte;
 
-JNIEXPORT jlong JNICALL
-Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_init(JNIEnv *env,
+/*
+ * Class:     com_velocitypowered_natives_encryption_OpenSslCipherImpl
+ * Method:    init
+ * Signature: ([BZ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_init(JNIEnv *env,
     jclass clazz,
     jbyteArray key,
     jboolean encrypt)
@@ -51,16 +55,12 @@ Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_init(JNIEnv *env,
     return (jlong) ctx;
 }
 
-JNIEXPORT void JNICALL
-Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_free(JNIEnv *env,
-    jclass clazz,
-    jlong ptr)
-{
-    EVP_CIPHER_CTX_free((EVP_CIPHER_CTX *) ptr);
-}
-
-JNIEXPORT void JNICALL
-Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_process(JNIEnv *env,
+/*
+ * Class:     com_velocitypowered_natives_encryption_OpenSslCipherImpl
+ * Method:    process
+ * Signature: (JJIJ)V
+ */
+JNIEXPORT void JNICALL Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_process(JNIEnv *env,
     jclass clazz,
     jlong ptr,
     jlong source,
@@ -68,4 +68,16 @@ Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_process(JNIEnv *en
     jlong dest)
 {
     EVP_CipherUpdate((EVP_CIPHER_CTX*) ptr, (byte*) dest, &len, (byte*) source, len);
+}
+
+/*
+ * Class:     com_velocitypowered_natives_encryption_OpenSslCipherImpl
+ * Method:    free
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_velocitypowered_natives_encryption_OpenSslCipherImpl_free(JNIEnv *env,
+    jclass clazz,
+    jlong ptr)
+{
+    EVP_CIPHER_CTX_free((EVP_CIPHER_CTX *) ptr);
 }

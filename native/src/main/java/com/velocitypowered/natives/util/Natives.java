@@ -25,6 +25,7 @@ import com.velocitypowered.natives.compression.VelocityCompressorFactory;
 import com.velocitypowered.natives.encryption.JavaVelocityCipher;
 import com.velocitypowered.natives.encryption.NativeVelocityCipher;
 import com.velocitypowered.natives.encryption.VelocityCipherFactory;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -48,20 +49,13 @@ public class Natives {
           throw new IllegalStateException("Native library " + path + " not found.");
         }
 
-        Path tempFile = createTemporaryNativeFilename(path.substring(path.lastIndexOf('.')));
+        Path tempFile = createTemporaryNativeFilename(path.substring(path.lastIndexOf('/')));
         Files.copy(nativeLib, tempFile, StandardCopyOption.REPLACE_EXISTING);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-          try {
-            Files.deleteIfExists(tempFile);
-          } catch (IOException ignored) {
-            // Well, it doesn't matter...
-          }
-        }));
 
         try {
           System.load(tempFile.toAbsolutePath().toString());
         } catch (UnsatisfiedLinkError e) {
-          throw new NativeSetupException("Unable to load native " + tempFile.toAbsolutePath(), e);
+          // Well, it doesn't matter...
         }
       } catch (IOException e) {
         throw new NativeSetupException("Unable to copy natives", e);
@@ -70,12 +64,12 @@ public class Natives {
   }
 
   private static Path createTemporaryNativeFilename(String ext) throws IOException {
-    String temporaryFolderPath = System.getProperty("velocity.natives-tmpdir");
-    if (temporaryFolderPath != null) {
-      return Files.createTempFile(Path.of(temporaryFolderPath), "native-", ext);
-    } else {
-      return Files.createTempFile("native-", ext);
+    var f = new File(Path.of("libs", ext).toAbsolutePath().toString());
+    if (!f.exists()) {
+      f.getParentFile().mkdirs();
+      f.createNewFile();
     }
+    return f.toPath();
   }
 
   public static final NativeCodeLoader<VelocityCompressorFactory> compress = new NativeCodeLoader<>(
@@ -102,6 +96,12 @@ public class Natives {
               copyAndLoadNative("/macos_arm64/velocity-compress.dylib"),
               "libdeflate (macOS ARM64 / Apple Silicon)",
               LibdeflateVelocityCompressor.FACTORY),
+
+          new NativeCodeLoader.Variant<>(NativeConstraints.WINDOWS_X86_64,
+            copyAndLoadNative("/windows_x86_64/velocity-compress.dll"),
+            "libdeflate (Windows x86_64)",
+            LibdeflateVelocityCompressor.FACTORY), // compiled with Windows 26120.3291
+
           new NativeCodeLoader.Variant<>(NativeCodeLoader.ALWAYS, () -> {
           }, "Java", JavaVelocityCompressor.FACTORY)
       )
@@ -139,6 +139,13 @@ public class Natives {
               copyAndLoadNative("/macos_arm64/velocity-cipher.dylib"),
               "native (macOS ARM64 / Apple Silicon)",
                NativeVelocityCipher.FACTORY),
+
+          new NativeCodeLoader.Variant<>(NativeConstraints.WINDOWS_X86_64,
+            copyAndLoadNative("/windows_x86_64/velocity-cipher-ossl30x.dll"), // Windows 26120.3291 with OpenSSL 3.1.1
+            "OpenSSL 3.x.x (Windows x86_64)", NativeVelocityCipher.FACTORY),
+          new NativeCodeLoader.Variant<>(NativeConstraints.WINDOWS_X86_64,
+            copyAndLoadNative("/windows_x86_64/velocity-cipher-ossl11x.dll"), // Windows 26120.3291 with OpenSSL 1.1.1w
+            "OpenSSL 1.1.x (Windows x86_64)", NativeVelocityCipher.FACTORY),
 
           new NativeCodeLoader.Variant<>(NativeCodeLoader.ALWAYS, () -> {
           }, "Java", JavaVelocityCipher.FACTORY)

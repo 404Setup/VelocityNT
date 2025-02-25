@@ -3,59 +3,103 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <libdeflate.h>
+#include "jni_zlib_inflate.h"
 #include "jni_util.h"
 
-JNIEXPORT jlong JNICALL
-Java_com_velocitypowered_natives_compression_NativeZlibInflate_init(JNIEnv *env,
-    jclass clazz)
-{
+/*
+ * Class:     com_velocitypowered_natives_compression_NativeZlibInflate
+ * Method:    init
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_velocitypowered_natives_compression_NativeZlibInflate_init(JNIEnv *env, jclass clazz) {
     struct libdeflate_decompressor *decompress = libdeflate_alloc_decompressor();
     if (decompress == NULL) {
-        // Out of memory!
-        throwException(env, "java/lang/OutOfMemoryError", "libdeflate allocate decompressor");
+        throwException(env, "java/lang/OutOfMemoryError", "libdeflate allocate decompressor failed");
         return 0;
     }
-
     return (jlong) decompress;
 }
 
-JNIEXPORT void JNICALL
-Java_com_velocitypowered_natives_compression_NativeZlibInflate_free(JNIEnv *env,
-    jclass clazz,
-    jlong ctx)
-{
-    libdeflate_free_decompressor((struct libdeflate_decompressor *) ctx);
+/*
+ * Class:     com_velocitypowered_natives_compression_NativeZlibInflate
+ * Method:    free
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_velocitypowered_natives_compression_NativeZlibInflate_free(JNIEnv *env, jclass clazz, jlong ctx) {
+    if (ctx != 0) {
+        struct libdeflate_decompressor *decompress = (struct libdeflate_decompressor *) ctx;
+        libdeflate_free_decompressor(decompress);
+    }
 }
 
-JNIEXPORT jboolean JNICALL
-Java_com_velocitypowered_natives_compression_NativeZlibInflate_process(JNIEnv *env,
+/*
+ * Class:     com_velocitypowered_natives_compression_NativeZlibInflate
+ * Method:    process
+ * Signature: (JJIJI)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_velocitypowered_natives_compression_NativeZlibInflate_process(
+    JNIEnv *env,
     jclass clazz,
     jlong ctx,
     jlong sourceAddress,
     jint sourceLength,
     jlong destinationAddress,
-    jint destinationLength,
-    jlong maximumSize)
-{
+    jint destinationLength) {
+
+    if (ctx == 0) {
+        throwException(env, "java/lang/IllegalStateException", "Decompressor context is null");
+        return JNI_FALSE;
+    }
+
+    if (sourceAddress == 0 || destinationAddress == 0) {
+        throwException(env, "java/lang/IllegalArgumentException", "Source or destination address is null");
+        return JNI_FALSE;
+    }
+
+    if (sourceLength <= 0 || destinationLength <= 0) {
+        throwException(env, "java/lang/IllegalArgumentException", "Invalid buffer length");
+        return JNI_FALSE;
+    }
+
     struct libdeflate_decompressor *decompress = (struct libdeflate_decompressor *) ctx;
-    enum libdeflate_result result = libdeflate_zlib_decompress(decompress, (void *) sourceAddress,
-        sourceLength, (void *) destinationAddress, destinationLength, NULL);
+    size_t actual_out_size;
+
+    enum libdeflate_result result = libdeflate_zlib_decompress(
+        decompress,
+        (void *) sourceAddress,
+        (size_t) sourceLength,
+        (void *) destinationAddress,
+        (size_t) destinationLength,
+        &actual_out_size  // 跟踪实际解压缩的大小
+    );
 
     switch (result) {
+        char error_message[256];
         case LIBDEFLATE_SUCCESS:
-            // We are happy
             return JNI_TRUE;
+
         case LIBDEFLATE_BAD_DATA:
-            throwException(env, "java/util/zip/DataFormatException", "inflate data is bad");
+            throwException(env, "java/util/zip/DataFormatException",
+                         "Invalid or corrupted compressed data");
             return JNI_FALSE;
+
         case LIBDEFLATE_SHORT_OUTPUT:
-        case LIBDEFLATE_INSUFFICIENT_SPACE:
-            // These cases are the same for us. We expect the full uncompressed size to be known.
-            throwException(env, "java/util/zip/DataFormatException", "uncompressed size is inaccurate");
+            snprintf(error_message, sizeof(error_message),
+                     "Output buffer is too small (actual size needed: %zu)",
+                     actual_out_size);
+            throwException(env, "java/util/zip/DataFormatException", error_message);
             return JNI_FALSE;
+
+        case LIBDEFLATE_INSUFFICIENT_SPACE:
+            throwException(env, "java/util/zip/DataFormatException",
+                         "Insufficient output buffer space");
+            return JNI_FALSE;
+
         default:
-            // Unhandled case
-            throwException(env, "java/util/zip/DataFormatException", "unknown libdeflate return code");
+            snprintf(error_message, sizeof(error_message),
+                "Unknown libdeflate error code: %d",
+                result);
+            throwException(env, "java/util/zip/DataFormatException", error_message);
             return JNI_FALSE;
     }
 }

@@ -1,0 +1,95 @@
+cmake_minimum_required(VERSION 3.10)
+project(velocity-compress)
+
+# Set C compiler to GCC (if not specified)
+if(NOT CMAKE_C_COMPILER)
+    set(CMAKE_C_COMPILER "gcc")
+endif()
+
+# Check required environment variables
+if(NOT DEFINED ENV{JAVA_HOME})
+    message(FATAL_ERROR "JAVA_HOME environment variable is not set")
+endif()
+
+# Set compilation options
+if(MSVC)
+    # MSVC compiler options
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /WX")
+else()
+    # GCC/Clang compiler options
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Werror -fomit-frame-pointer")
+endif()
+
+# Set noexecstack only on non-Windows systems
+if(NOT WIN32)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -z noexecstack")
+endif()
+
+# Add JNI include directories
+include_directories($ENV{JAVA_HOME}/include)
+if(WIN32)
+    include_directories($ENV{JAVA_HOME}/include/win32)
+else()
+    include_directories($ENV{JAVA_HOME}/include/linux)
+endif()
+
+if(MSVC)
+     # Disable unused parameter warning
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /WX /wd4100")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Werror -fomit-frame-pointer")
+endif()
+
+# Handle libdeflate dependency
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libdeflate)
+    message(STATUS "Cloning libdeflate...")
+    execute_process(
+        COMMAND git clone --branch v1.23 --single-branch https://github.com/ebiggers/libdeflate.git
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+endif()
+
+# Configure libdeflate
+add_subdirectory(libdeflate)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Get system architecture
+execute_process(
+    COMMAND uname -m
+    OUTPUT_VARIABLE ARCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Check if musl libc is used
+execute_process(
+    COMMAND sh -c "ldd --version 2>&1 | grep -q musl"
+    RESULT_VARIABLE MUSL_CHECK
+    OUTPUT_QUIET
+    ERROR_QUIET)
+
+if(MUSL_CHECK EQUAL 0)
+    set(SUFFIX "-musl")
+else()
+    set(SUFFIX "")
+endif()
+
+# Set output directory
+if (WIN32)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/main/resources/windows_${ARCH})
+else()
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/main/resources/linux_${ARCH})
+endif()
+
+# Add shared library target
+add_library(velocity-compress SHARED
+    src/main/c/jni_util.c
+    src/main/c/jni_zlib_deflate.c
+    src/main/c/jni_zlib_inflate.c
+)
+
+# Link libdeflate
+target_link_libraries(velocity-compress PRIVATE libdeflate_static)
+
+# Set output name
+set_target_properties(velocity-compress PROPERTIES 
+    OUTPUT_NAME "velocity-compress${SUFFIX}"
+)
