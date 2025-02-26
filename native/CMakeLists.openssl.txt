@@ -120,10 +120,10 @@ target_link_libraries(velocity-cipher PRIVATE
 )
 
 set_target_properties(velocity-cipher PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}"
+#    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}"
+#    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}"
     OUTPUT_NAME "${OUTPUT_NAME}"
 )
 
-message(STATUS "Output directory: ${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}")
-message(STATUS "Output file name: ${OUTPUT_NAME}.${LIB_EXTENSION}")
+#message(STATUS "Output directory: ${CMAKE_SOURCE_DIR}/src/main/resources/${PLATFORM_DIR}")
+#message(STATUS "Output file name: ${OUTPUT_NAME}.${LIB_EXTENSION}")
