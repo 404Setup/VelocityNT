@@ -40,7 +40,7 @@ Install OpenSSL-Win64 3.1+ (https://slproweb.com/products/Win32OpenSSL.html) and
 Then in the native module, rename `CMakeLists.openssl.txt` to `CMakeLists.txt`, 
 and then execute the "cmake -B build && cmake --build build".
 
-Find it in the `native/src/main/resources/windows_x86_64/Debug/velocity-cipher-ossl30x.dll` and move it to the
+Find it in the `native/build/Debug/velocity-cipher-ossl30x.dll` and move it to the
  `native/src/main/resources/windows_x86_64/velocity-cipher-ossl30x.dll`
 
 #### Deflate
