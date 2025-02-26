@@ -40,6 +40,8 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Werror -fomit-frame-pointer")
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Handle libdeflate dependency
 if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libdeflate)
     message(STATUS "Cloning libdeflate...")
