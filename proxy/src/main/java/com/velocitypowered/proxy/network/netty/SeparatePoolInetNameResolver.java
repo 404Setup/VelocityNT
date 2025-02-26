@@ -21,6 +21,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.velocitypowered.proxy.util.VelocityProperties;
 import io.netty.resolver.AddressResolver;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultNameResolver;
@@ -34,7 +35,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import one.tranic.t.thread.T2hread;
 
 /**
  * An implementation of {@code InetNameResolver} that performs blocking DNS name lookups
@@ -56,9 +59,13 @@ public final class SeparatePoolInetNameResolver extends InetNameResolver {
    */
   public SeparatePoolInetNameResolver(EventExecutor executor) {
     super(executor);
+    ThreadFactory factory = VelocityProperties.readBoolean("velocity.nt.virtual-thread", false)
+            ? T2hread.newVirtualThreadFactoryOrDefault() :
+            Executors.defaultThreadFactory();
     this.resolveExecutor = Executors.newSingleThreadExecutor(
         new ThreadFactoryBuilder()
             .setNameFormat("Velocity DNS Resolver")
+            .setThreadFactory(factory)
             .setDaemon(true)
             .build());
     this.delegate = new DefaultNameResolver(executor);

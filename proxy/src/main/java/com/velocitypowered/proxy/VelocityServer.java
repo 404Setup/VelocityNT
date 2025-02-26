@@ -196,13 +196,13 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
     String implVersion;
     String implVendor;
     if (pkg != null) {
-      implName = MoreObjects.firstNonNull(pkg.getImplementationTitle(), "Velocity");
+      implName = MoreObjects.firstNonNull(pkg.getImplementationTitle(), "VelocityNT");
       implVersion = MoreObjects.firstNonNull(pkg.getImplementationVersion(), "<unknown>");
-      implVendor = MoreObjects.firstNonNull(pkg.getImplementationVendor(), "Velocity Contributors");
+      implVendor = MoreObjects.firstNonNull(pkg.getImplementationVendor(), "404Setup && Velocity Contributors");
     } else {
-      implName = "Velocity";
+      implName = "VelocityNT";
       implVersion = "<unknown>";
-      implVendor = "Velocity Contributors";
+      implVendor = "404Setup && Velocity Contributors";
     }
 
     return new ProxyVersion(implName, implVendor, implVersion);

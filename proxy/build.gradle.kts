@@ -18,8 +18,8 @@ tasks {
 
     jar {
         manifest {
-            attributes["Implementation-Title"] = "Velocity"
-            attributes["Implementation-Vendor"] = "Velocity Contributors"
+            attributes["Implementation-Title"] = "VelocityNT"
+            attributes["Implementation-Vendor"] = "404Setup && Velocity Contributors"
             attributes["Multi-Release"] = "true"
         }
     }
@@ -125,6 +125,7 @@ dependencies {
     implementation(variantOf(libs.netty.transport.native.kqueue) { classifier("osx-x86_64") })
     implementation(variantOf(libs.netty.transport.native.kqueue) { classifier("osx-aarch_64") })
 
+    implementation(libs.t2hread)
     implementation(libs.jopt)
     implementation(libs.terminalconsoleappender)
     runtimeOnly(libs.jline)
