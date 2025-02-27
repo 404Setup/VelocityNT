@@ -226,4 +226,9 @@ public class VelocityPluginManager implements PluginManager {
           "Operation is not supported on non-Java Velocity plugins.");
     }
   }
+
+  @Override
+  public int getPluginCount() {
+    return pluginsById.size();
+  }
 }

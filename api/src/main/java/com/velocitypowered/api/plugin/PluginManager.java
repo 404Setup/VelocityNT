@@ -59,6 +59,15 @@ public interface PluginManager {
   void addToClasspath(Object plugin, Path path);
 
   /**
+   * Retrieves the count of plugins currently managed by this {@code PluginManager}.
+   *
+   * @return the number of plugins
+   */
+  default int getPluginCount() {
+    return 0;
+  }
+
+  /**
    * Ensures a plugin container exists for the given {@code plugin}.
    *
    * @param plugin the instance to look up the container for

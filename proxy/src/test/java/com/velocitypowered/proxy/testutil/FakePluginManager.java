@@ -80,6 +80,11 @@ public class FakePluginManager implements PluginManager {
   }
 
   @Override
+  public int getPluginCount() {
+    return 3;
+  }
+
+  @Override
   public boolean isLoaded(@NonNull String id) {
     return id.equals("a") || id.equals("b");
   }

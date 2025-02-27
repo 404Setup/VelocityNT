@@ -119,6 +119,7 @@ public class Metrics {
       );
       metrics.addCustomChart(new SimplePie("velocity_version",
           () -> server.getVersion().getVersion()));
+      metrics.addCustomChart(new SimplePie("plugins", () -> String.valueOf(server.getPluginManager().getPluginCount())));
       metrics.addCustomChart(new SimplePie("native_mode",
               () -> Natives.compress.getLoadedVariant() != "Java" || Natives.cipher.getLoadedVariant() != "Java" ? "Yes" : "No"));
 
