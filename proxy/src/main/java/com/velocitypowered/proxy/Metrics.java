@@ -17,6 +17,7 @@
 
 package com.velocitypowered.proxy;
 
+import com.velocitypowered.natives.util.Natives;
 import com.velocitypowered.proxy.config.VelocityConfiguration;
 import java.io.File;
 import java.io.IOException;
@@ -102,8 +103,9 @@ public class Metrics {
 
     private static final Logger logger = LogManager.getLogger(Metrics.class);
 
+    @SuppressWarnings("all")
     static void startMetrics(VelocityServer server, VelocityConfiguration.Metrics metricsConfig) {
-      Metrics metrics = new Metrics(logger, 4752, metricsConfig.isEnabled());
+      Metrics metrics = new Metrics(logger, 24934, metricsConfig.isEnabled());
 
       metrics.addCustomChart(
           new SingleLineChart("players", server::getPlayerCount)
@@ -117,6 +119,8 @@ public class Metrics {
       );
       metrics.addCustomChart(new SimplePie("velocity_version",
           () -> server.getVersion().getVersion()));
+      metrics.addCustomChart(new SimplePie("native_mode",
+              () -> Natives.compress.getLoadedVariant() != "Java" || Natives.cipher.getLoadedVariant() != "Java" ? "Yes" : "No"));
 
       metrics.addCustomChart(new DrilldownPie("java_version", () -> {
         Map<String, Map<String, Integer>> map = new HashMap<>();
