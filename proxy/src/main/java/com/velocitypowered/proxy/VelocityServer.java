@@ -41,6 +41,7 @@ import com.velocitypowered.api.util.ProxyVersion;
 import com.velocitypowered.proxy.command.VelocityCommandManager;
 import com.velocitypowered.proxy.command.builtin.CallbackCommand;
 import com.velocitypowered.proxy.command.builtin.GlistCommand;
+import com.velocitypowered.proxy.command.builtin.KickCommand;
 import com.velocitypowered.proxy.command.builtin.SendCommand;
 import com.velocitypowered.proxy.command.builtin.ServerCommand;
 import com.velocitypowered.proxy.command.builtin.ShutdownCommand;
@@ -278,6 +279,13 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
             .aliases("end", "stop")
             .build(),
         shutdownCommand
+    );
+    final BrigadierCommand kickCommand = KickCommand.create(this);
+    commandManager.register(
+            commandManager.metaBuilder(kickCommand)
+                    .plugin(VelocityVirtualPlugin.INSTANCE)
+                    .build(),
+            kickCommand
     );
     new GlistCommand(this).register();
     new SendCommand(this).register();

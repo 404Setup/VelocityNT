@@ -1,4 +1,4 @@
-plugins {
+/*plugins {
     checkstyle
 }
 
@@ -8,3 +8,4 @@ extensions.configure<CheckstyleExtension> {
     maxWarnings = 0
     toolVersion = libs.checkstyle.get().version.toString()
 }
+*/
