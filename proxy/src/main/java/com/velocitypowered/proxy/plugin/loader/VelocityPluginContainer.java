@@ -20,12 +20,9 @@ package com.velocitypowered.proxy.plugin.loader;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.PluginDescription;
-import com.velocitypowered.proxy.util.VelocityProperties;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import one.tranic.t.thread.T2hread;
 
 /**
  * Implements {@link PluginContainer}.
@@ -59,14 +56,10 @@ public class VelocityPluginContainer implements PluginContainer {
     if (this.service == null) {
       synchronized (this) {
         if (this.service == null) {
-          ThreadFactory factory = VelocityProperties.readBoolean("velocity.nt.virtual-thread", false)
-                  ? T2hread.newVirtualThreadFactoryOrDefault() :
-                  Executors.defaultThreadFactory();
           String name = this.description.getName().orElse(this.description.getId());
           this.service = Executors.unconfigurableExecutorService(
               Executors.newCachedThreadPool(
                 new ThreadFactoryBuilder().setDaemon(true)
-                    .setThreadFactory(factory)
                     .setNameFormat(name + " - Task Executor #%d")
                     .setDaemon(true)
                     .build()
