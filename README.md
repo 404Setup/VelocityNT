@@ -20,7 +20,22 @@ Velocity is licensed under the GPLv3 license.
 * First-class support for Paper, Sponge, Fabric and Forge. (Other implementations
   may work, but we make every endeavor to support these server implementations
   specifically.)
-  
+
+## Feature
+- 1:1 compatible with Velocity
+- Allow Windows to use native-based encryption, decryption and compression
+
+## VelocityNT Command
+- `/vkick` - Kick players at the proxy level
+- TODO
+
+## VelocityNT Permission
+- velocity.command.kick
+- TODO
+
+## bStats
+https://bstats.org/plugin/server-implementation/VelocityNT/24934
+
 ## Building
 
 Velocity is built with [Gradle](https://gradle.org). We recommend using the
