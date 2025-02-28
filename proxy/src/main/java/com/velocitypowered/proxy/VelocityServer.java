@@ -96,6 +96,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -160,6 +161,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
   private boolean shutdown = false;
   private final VelocityPluginManager pluginManager;
 
+  private final AtomicInteger playerCount = new AtomicInteger(0);
   private final Map<UUID, ConnectedPlayer> connectionsByUuid = new ConcurrentHashMap<>();
   private final Map<String, ConnectedPlayer> connectionsByName = new ConcurrentHashMap<>();
   private final VelocityConsole console;
@@ -584,6 +586,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
       for (ConnectedPlayer player : players) {
         player.disconnect(reason);
       }
+      playerCount.addAndGet(-playerCount.get());
 
       try {
         boolean timedOut = false;
@@ -698,15 +701,18 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
         connectionsByName.remove(lowerName, connection);
         return false;
       }
+      playerCount.incrementAndGet();
     } else {
       ConnectedPlayer existing = connectionsByUuid.get(connection.getUniqueId());
       if (existing != null) {
         existing.disconnect(Component.translatable("multiplayer.disconnect.duplicate_login"));
+        playerCount.decrementAndGet();
       }
 
       // We can now replace the entries as needed.
       connectionsByName.put(lowerName, connection);
       connectionsByUuid.put(connection.getUniqueId(), connection);
+      playerCount.incrementAndGet();
     }
     return true;
   }
@@ -717,8 +723,9 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
    * @param connection the connection to unregister
    */
   public void unregisterConnection(ConnectedPlayer connection) {
-    connectionsByName.remove(connection.getUsername().toLowerCase(Locale.US), connection);
-    connectionsByUuid.remove(connection.getUniqueId(), connection);
+    boolean b1 = connectionsByName.remove(connection.getUsername().toLowerCase(Locale.US), connection);
+    boolean b2 = connectionsByUuid.remove(connection.getUniqueId(), connection);
+    if (b1 && b2) playerCount.decrementAndGet();
     connection.disconnected();
   }
 
@@ -759,7 +766,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
 
   @Override
   public int getPlayerCount() {
-    return connectionsByUuid.size();
+    return playerCount.get();
   }
 
   @Override
@@ -770,6 +777,10 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
   @Override
   public Collection<RegisteredServer> getAllServers() {
     return servers.getAllServers();
+  }
+
+  public int getServerCount() {
+    return servers.getServers();
   }
 
   @Override
