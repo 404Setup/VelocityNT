@@ -74,7 +74,6 @@ JNIEXPORT jboolean JNICALL Java_com_velocitypowered_natives_compression_NativeZl
     );
 
     switch (result) {
-        char error_message[256];
         case LIBDEFLATE_SUCCESS:
             return JNI_TRUE;
 
@@ -84,10 +83,11 @@ JNIEXPORT jboolean JNICALL Java_com_velocitypowered_natives_compression_NativeZl
             return JNI_FALSE;
 
         case LIBDEFLATE_SHORT_OUTPUT:
-            snprintf(error_message, sizeof(error_message),
+            char error_message_a[256];
+            snprintf(error_message_a, sizeof(error_message_a),
                      "Output buffer is too small (actual size needed: %zu)",
                      actual_out_size);
-            throwException(env, "java/util/zip/DataFormatException", error_message);
+            throwException(env, "java/util/zip/DataFormatException", error_message_a);
             return JNI_FALSE;
 
         case LIBDEFLATE_INSUFFICIENT_SPACE:
@@ -96,10 +96,11 @@ JNIEXPORT jboolean JNICALL Java_com_velocitypowered_natives_compression_NativeZl
             return JNI_FALSE;
 
         default:
-            snprintf(error_message, sizeof(error_message),
+            char error_message_b[256];
+            snprintf(error_message_b, sizeof(error_message_b),
                 "Unknown libdeflate error code: %d",
                 result);
-            throwException(env, "java/util/zip/DataFormatException", error_message);
+            throwException(env, "java/util/zip/DataFormatException", error_message_b);
             return JNI_FALSE;
     }
 }
