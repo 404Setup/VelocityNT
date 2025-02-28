@@ -29,6 +29,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -38,6 +40,7 @@ public class ServerMap {
 
   private final @Nullable VelocityServer server;
   private final Map<String, RegisteredServer> servers = new ConcurrentHashMap<>();
+  private final AtomicInteger serverCount = new AtomicInteger(0);
 
   public ServerMap(@Nullable VelocityServer server) {
     this.server = server;
@@ -57,6 +60,10 @@ public class ServerMap {
 
   public Collection<RegisteredServer> getAllServers() {
     return ImmutableList.copyOf(servers.values());
+  }
+
+  public int getServers() {
+    return serverCount.get();
   }
 
   /**
@@ -89,6 +96,7 @@ public class ServerMap {
       if (server != null) {
         server.getEventManager().fireAndForget(new ServerRegisteredEvent(rs));
       }
+      serverCount.incrementAndGet();
 
       return rs;
     } else {
@@ -113,6 +121,7 @@ public class ServerMap {
         "Trying to remove server %s with differing information", serverInfo.getName());
     Preconditions.checkState(servers.remove(lowerName, rs),
         "Server with name %s replaced whilst unregistering", serverInfo.getName());
+    serverCount.decrementAndGet();
 
     if (server != null) {
       server.getEventManager().fireAndForget(new ServerUnregisteredEvent(rs));
