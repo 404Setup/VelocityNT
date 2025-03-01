@@ -14,10 +14,12 @@ endif()
 # Set compilation options
 if(MSVC)
     # MSVC compiler options
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /WX")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox /GL /W4 /WX")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /LTCG")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG")
 else()
     # GCC/Clang compiler options
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Werror -fomit-frame-pointer")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -Werror -fomit-frame-pointer")
 endif()
 
 # Set noexecstack only on non-Windows systems
@@ -35,9 +37,11 @@ endif()
 
 if(MSVC)
      # Disable unused parameter warning
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4 /WX /wd4100")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox /GL /W4 /WX /wd4100")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /LTCG")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Werror -fomit-frame-pointer")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -Werror -fomit-frame-pointer")
 endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
