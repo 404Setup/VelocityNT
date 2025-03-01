@@ -104,6 +104,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
 import org.apache.logging.log4j.LogManager;
@@ -507,6 +508,15 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
       }
     }
 
+    for (RegisteredServer s : servers.getAllServers()) {
+      if (!newConfiguration.getServers().containsKey(s.getServerInfo().getName())) {
+        for (Player player : s.getPlayersConnected()) {
+          player.disconnect(Component.translatable("velocity.kick.server-change", NamedTextColor.YELLOW));
+        }
+        servers.unregister(s.getServerInfo());
+      }
+    }
+
     // If we had any players to evacuate, let's move them now. Wait until they are all moved off.
     if (!evacuate.isEmpty()) {
       CountDownLatch latch = new CountDownLatch(evacuate.size());
@@ -516,15 +526,13 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
           player.createConnectionRequest(next.get()).connectWithIndication()
               .whenComplete((success, ex) -> {
                 if (ex != null || success == null || !success) {
-                  player.disconnect(Component.text("Your server has been changed, but we could "
-                      + "not move you to any fallback servers."));
+                  player.disconnect(Component.translatable("velocity.kick.server-change", NamedTextColor.YELLOW));
                 }
                 latch.countDown();
               });
         } else {
           latch.countDown();
-          player.disconnect(Component.text("Your server has been changed, but we could "
-              + "not move you to any fallback servers."));
+          player.disconnect(Component.translatable("velocity.kick.server-change", NamedTextColor.YELLOW));
         }
       }
       try {
