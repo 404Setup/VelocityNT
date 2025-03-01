@@ -64,7 +64,7 @@ public class KickCommand {
                             if (player.isEmpty()) {
                                 sender.sendMessage(
                                         Component.translatable(
-                                                "velocity.error.not-found-player",
+                                                "velocity.command.player-not-found",
                                                 NamedTextColor.RED,
                                                 Component.text(playerName)
                                         )
