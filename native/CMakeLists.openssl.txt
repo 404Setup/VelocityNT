@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(velocity-cipher)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 if(WIN32)
     list(APPEND OPENSSL_ROOT_HINT
@@ -22,6 +23,16 @@ endif()
 
 find_package(JNI REQUIRED)
 find_package(OpenSSL REQUIRED)
+
+# Add JNI include directories
+include_directories($ENV{JAVA_HOME}/include)
+if(WIN32)
+    include_directories($ENV{JAVA_HOME}/include/win32)
+elseif(APPLE)
+    include_directories($ENV{JAVA_HOME}/include/darwin)
+else()
+    include_directories($ENV{JAVA_HOME}/include/linux)
+endif()
 
 message(STATUS "Found OpenSSL installation directory: ${OPENSSL_ROOT_DIR}")
 message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
@@ -98,9 +109,11 @@ else()
             -fPIC
         )
 
-        target_link_options(velocity-cipher PRIVATE
-            -z,noexecstack
-        )
+        if(UNIX AND NOT APPLE)
+                target_link_options(velocity-cipher PRIVATE
+                    -z,noexecstack
+                )
+            endif()
     endif()
 endif()
 
@@ -110,9 +123,11 @@ if(NOT WIN32)
         -fPIC
     )
 
-    target_link_options(velocity-cipher PRIVATE
-        -z,noexecstack
-    )
+    if(UNIX AND NOT APPLE)
+        target_link_options(velocity-cipher PRIVATE
+            -z,noexecstack
+        )
+    endif()
 endif()
 
 target_link_libraries(velocity-cipher PRIVATE

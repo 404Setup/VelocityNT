@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(velocity-compress)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 # Set C compiler to GCC (if not specified)
 if(NOT CMAKE_C_COMPILER)
@@ -23,7 +24,7 @@ else()
 endif()
 
 # Set noexecstack only on non-Windows systems
-if(NOT WIN32)
+if(UNIX AND NOT APPLE)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -z noexecstack")
 endif()
 
@@ -31,6 +32,8 @@ endif()
 include_directories($ENV{JAVA_HOME}/include)
 if(WIN32)
     include_directories($ENV{JAVA_HOME}/include/win32)
+elseif(APPLE)
+    include_directories($ENV{JAVA_HOME}/include/darwin)
 else()
     include_directories($ENV{JAVA_HOME}/include/linux)
 endif()
